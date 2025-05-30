@@ -1,0 +1,43 @@
+name: Deploy Next.js Static Site
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.19'  # Use the Node.js version you need
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the project
+        run: |
+          ./buildall.sh
+
+      - name: Copy files via SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H lxhalle.in.tum.de >> ~/.ssh/known_hosts
+          scp -r ./dist/ momi@lxhalle.in.tum.de:/u/halle/momi/home_at/home_page/html-data/mymvg
+
+      - name: Copy&Run publish script on server
+        run: |
+          scp publish_mvg_gh_action.sh
+          ssh -i ~/.ssh/id_rsa momi@lxhalle.in.tum.de "bash /u/halle/momi/home_at/home_page/html-data/publish_mvg_gh_action.sh"
+
+        
