@@ -33,11 +33,16 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H lxhalle.in.tum.de >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa momi@lxhalle.in.tum.de "rm -rf /u/halle/momi/home_at/home_page/html-data/mymvg"
+          ssh -i ~/.ssh/id_rsa momi@lxhalle.in.tum.de "mkdir /u/halle/momi/home_at/home_page/html-data/mymvg"
           scp -r ./dist/ momi@lxhalle.in.tum.de:/u/halle/momi/home_at/home_page/html-data/mymvg
 
       - name: Copy&Run publish script on server
         run: |
-          scp publish_mvg_gh_action.sh
-          ssh -i ~/.ssh/id_rsa momi@lxhalle.in.tum.de "bash /u/halle/momi/home_at/home_page/html-data/publish_mvg_gh_action.sh"
+          scp publish_mvg_gh_action.sh momi@lxhalle.in.tum.de:/u/halle/momi/home_at/home_page/html-data/mymvg
+          ssh -i ~/.ssh/id_rsa momi@lxhalle.in.tum.de "bash /u/halle/momi/home_at/home_page/html-data/mymvg/publish_mvg_gh_action.sh"
+      - name: Publish index.html
+        run: |
+          scp index.html momi@lxhalle.in.tum.de:/u/halle/momi/home_at/home_page/html-data/mymvg
 
         
