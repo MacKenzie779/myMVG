@@ -10,4 +10,6 @@ npm run build-kg-gf
 
 npm run build-kg-kl
 
+npm run build-mp-gf
+
 npm run build-un-gf

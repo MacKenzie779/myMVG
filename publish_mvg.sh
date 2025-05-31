@@ -6,7 +6,7 @@
 echo "Publishing myMVG"
 echo "============================"
 
-echo "[1/6] ft-gf"
+echo "[1/7] ft-gf"
 echo "============================"
 echo "rename build directory"
 rm -rf ft/gf
@@ -18,7 +18,7 @@ chmod -R 705 ft/gf
 echo "published successfully!"
 echo "============================"
 
-echo "[2/6] ft-kl"
+echo "[2/7] ft-kl"
 echo "============================"
 echo "rename build directory"
 rm -rf ft/kl
@@ -30,7 +30,7 @@ chmod -R 705 ft/kl
 echo "published successfully!"
 echo "============================"
 
-echo "[3/6] gf-kl"
+echo "[3/7] gf-kl"
 echo "============================"
 echo "rename build directory"
 rm -rf gf/kl
@@ -42,7 +42,7 @@ chmod -R 705 gf/kl
 echo "published successfully!"
 echo "============================"
 
-echo "[4/6] kg-gf"
+echo "[4/7] kg-gf"
 echo "============================"
 echo "rename build directory"
 rm -rf kg/gf
@@ -54,7 +54,7 @@ chmod -R 705 kg/gf
 echo "published successfully!"
 echo "============================"
 
-echo "[5/6] kg-kl"
+echo "[5/7] kg-kl"
 echo "============================"
 echo "rename build directory"
 rm -rf kg/kl
@@ -66,7 +66,19 @@ chmod -R 705 kg/kl
 echo "published successfully!"
 echo "============================"
 
-echo "[6/6] un-gf"
+echo "[6/7] mp-gf"
+echo "============================"
+echo "rename build directory"
+rm -rf mp/gf
+mkdir -p mp/gf
+mv -T dist/mp-gf mp/gf
+echo "set correct access rights"
+chmod -R 705 mp
+chmod -R 705 mp/gf
+echo "published successfully!"
+echo "============================"
+
+echo "[7/7] un-gf"
 echo "============================"
 echo "rename build directory"
 rm -rf un/gf

@@ -8,6 +8,7 @@
     "build-gf-kl": "bash buildscripts/gf-kl.sh",
     "build-kg-gf": "bash buildscripts/kg-gf.sh",
     "build-kg-kl": "bash buildscripts/kg-kl.sh",
+    "build-mp-gf": "bash buildscripts/mp-gf.sh",
     "build-un-gf": "bash buildscripts/un-gf.sh",
     "dev": "next dev",
     "build": "next build",
