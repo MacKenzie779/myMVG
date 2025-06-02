@@ -4,23 +4,11 @@ import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Clock, Train, Users, AlertCircle, ChevronDown, ChevronUp, Info } from "lucide-react"
-import { API_CONFIG, fetchWithTimeout } from "@/lib/config"
+import { API_CONFIG, fetchWithTimeout, buildNewsUrl } from "@/lib/config"
+import { StationService, type StationLocation, type Departure } from "@/lib/station-service"
 import { DebugInfo } from "@/components/debug-info"
-
-interface Departure {
-  plannedDepartureTime: number
-  realtime: boolean
-  delayInMinutes: number
-  realtimeDepartureTime: number
-  transportType: string
-  label: string
-  destination: string
-  cancelled: boolean
-  platform?: number
-  platformChanged?: boolean
-  occupancy: string
-  lineId?: string // Add this line
-}
+import { StationSelector } from "@/components/station-selector"
+import { useSearchParams, useRouter } from "next/navigation"
 
 interface DepartureDisplay extends Departure {
   minutesUntilDeparture: number
@@ -55,6 +43,13 @@ interface NewsItem {
 }
 
 export default function UBahnDepartures() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  // Get station and direction from URL search parameters
+  const station = searchParams.get("station")
+  const direction = searchParams.get("direction")
+
   const [departures, setDepartures] = useState<DepartureDisplay[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -63,33 +58,75 @@ export default function UBahnDepartures() {
   const [news, setNews] = useState<NewsItem[]>([])
   const [newsLoading, setNewsLoading] = useState(true)
   const [newsError, setNewsError] = useState<string | null>(null)
+  const [currentStationData, setCurrentStationData] = useState<StationLocation | null>(null)
+
+  const handleStationChange = useCallback(
+    (newStation?: string, newDirection?: string) => {
+      const params = new URLSearchParams()
+
+      if (newStation) {
+        params.set("station", newStation)
+      }
+
+      if (newDirection) {
+        params.set("direction", newDirection)
+      }
+
+      const queryString = params.toString()
+      const newUrl = queryString ? `/?${queryString}` : "/"
+
+      router.push(newUrl)
+    },
+    [router],
+  )
 
   const fetchDepartures = useCallback(async () => {
     try {
       setError(null)
-      const response = await fetchWithTimeout(API_CONFIG.DEPARTURES_URL, {
-        headers: API_CONFIG.HEADERS,
-        mode: API_CONFIG.CORS_MODE,
-      })
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch departures: ${response.status} ${response.statusText}`)
+      if (!station) {
+        // If no station is selected, show empty state
+        setDepartures([])
+        setLoading(false)
+        return
       }
 
-      const data: Departure[] = await response.json()
+      // First, search for the station to get its globalId
+      const stationData = await StationService.getStationByName(station)
+      if (!stationData) {
+        throw new Error(`Station "${station}" not found`)
+      }
 
-      // Filter for U-Bahn only and U6 line specifically, then calculate time until departure
-      const ubahnDepartures = data
-        .filter(
-          (departure) => departure.transportType === "UBAHN" && departure.lineId && departure.lineId.includes(process.env.NEXT_PUBLIC_DIRECTION_FILTER!),
-        )
+      setCurrentStationData(stationData)
+
+      // Then fetch departures using the globalId
+      const departuresData = await StationService.getDepartures(stationData.globalId)
+
+      // Filter by direction if specified and calculate time until departure
+      let filteredDepartures = departuresData
+      if (direction) {
+
+        if (direction.toLowerCase().includes("gf")) {
+            filteredDepartures = departuresData.filter((departure) =>
+                departure.lineId?.includes("G:R"),
+            )
+        }
+        
+        if (direction.toLowerCase().includes("kl")) {
+            filteredDepartures = departuresData.filter((departure) =>
+                departure.lineId?.includes("G:H"),
+            )
+        }
+      }
+
+      const departuresWithTime = filteredDepartures
         .map((departure) => ({
           ...departure,
           minutesUntilDeparture: Math.max(0, Math.floor((departure.realtimeDepartureTime - Date.now()) / 60000)),
         }))
         .sort((a, b) => a.realtimeDepartureTime - b.realtimeDepartureTime)
 
-      setDepartures(ubahnDepartures)
+      setDepartures(departuresWithTime)
       setLastUpdated(new Date())
       setLoading(false)
     } catch (err) {
@@ -97,12 +134,14 @@ export default function UBahnDepartures() {
       setError(err instanceof Error ? err.message : "Failed to fetch departures")
       setLoading(false)
     }
-  }, [])
+  }, [station, direction])
 
   const fetchNews = useCallback(async () => {
     try {
       setNewsError(null)
-      const response = await fetchWithTimeout(API_CONFIG.NEWS_URL, {
+      const apiUrl = buildNewsUrl(station || undefined, direction || undefined)
+
+      const response = await fetchWithTimeout(apiUrl, {
         headers: API_CONFIG.HEADERS,
         mode: API_CONFIG.CORS_MODE,
       })
@@ -123,7 +162,7 @@ export default function UBahnDepartures() {
       setNewsError(err instanceof Error ? err.message : "Failed to fetch news")
       setNewsLoading(false)
     }
-  }, [])
+  }, [station, direction])
 
   // Update time until departure every second
   useEffect(() => {
@@ -139,8 +178,10 @@ export default function UBahnDepartures() {
     return () => clearInterval(interval)
   }, [])
 
-  // Fetch data every minute
+  // Fetch data every minute and when station/direction changes
   useEffect(() => {
+    setLoading(true)
+    setNewsLoading(true)
     fetchDepartures()
     fetchNews()
     const interval = setInterval(() => {
@@ -204,7 +245,9 @@ export default function UBahnDepartures() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Train className="w-8 h-8 animate-pulse mx-auto mb-4" />
-          <p className="text-gray-600">Loading U-Bahn departures...</p>
+          <p className="text-gray-600">
+            {station ? `Loading departures for ${station}...` : "Loading U-Bahn departures..."}
+          </p>
         </div>
       </div>
     )
@@ -216,7 +259,15 @@ export default function UBahnDepartures() {
         <div className="mb-4 md:mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
             <Train className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
-            {process.env.NEXT_PUBLIC_TITLE}
+            {currentStationData?.name}
+            {direction != null && (
+                <> – Richtung {direction}</>
+            )}
+            {currentStationData && (
+              <Badge variant="outline" className="text-sm">
+                U6 Departures
+              </Badge>
+            )}
           </h1>
           {lastUpdated && (
             <p className="text-xs md:text-sm text-gray-600 flex items-center gap-1">
@@ -226,7 +277,9 @@ export default function UBahnDepartures() {
           )}
         </div>
 
-        <DebugInfo />
+        <StationSelector currentStation={station} currentDirection={direction} onStationChange={handleStationChange} />
+
+        <DebugInfo station={station} direction={direction} globalId={currentStationData?.globalId} />
 
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50">
@@ -239,11 +292,25 @@ export default function UBahnDepartures() {
           </Card>
         )}
 
-        {departures.length === 0 ? (
+        {!station ? (
           <Card>
             <CardContent className="p-8 text-center">
               <Train className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No U-Bahn departures available</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Select a Station</h3>
+              <p className="text-gray-600 mb-4">Choose a U-Bahn station to see U6 line departures</p>
+              <p className="text-sm text-gray-500">
+                Use the station selector above to search for stations like "Marienplatz", "Universität", or "Garching"
+              </p>
+            </CardContent>
+          </Card>
+        ) : departures.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Train className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">
+                No U6 departures available for {currentStationData?.name || station}
+                {direction && ` towards ${direction}`}
+              </p>
             </CardContent>
           </Card>
         ) : (
