@@ -263,11 +263,6 @@ export default function UBahnDepartures() {
             {direction != null && (
                 <> – Richtung {direction}</>
             )}
-            {currentStationData && (
-              <Badge variant="outline" className="text-sm">
-                U6 Departures
-              </Badge>
-            )}
           </h1>
           {lastUpdated && (
             <p className="text-xs md:text-sm text-gray-600 flex items-center gap-1">
