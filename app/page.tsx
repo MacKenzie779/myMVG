@@ -106,7 +106,7 @@ export default function UBahnDepartures() {
       let filteredDepartures = departuresData
       if (direction) {
 
-        if (direction.toLowerCase().includes("gf")) {
+        if (direction.toLowerCase().includes("ga") || direction.toLowerCase().includes("fo") || direction.toLowerCase().includes("gf") || direction.toLowerCase().includes("gfz")) {
             filteredDepartures = departuresData.filter((departure) =>
                 departure.lineId?.includes("G:R"),
             )

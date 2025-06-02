@@ -260,15 +260,6 @@ export function StationSelector({ currentStation, currentDirection, onStationCha
             <span className="text-sm font-medium text-gray-700">
               {selectedStation ? selectedStation.name : currentStation || "Select Station"}
             </span>
-            {currentDirection && (
-              <Badge
-                variant="outline"
-                className="text-xs cursor-pointer hover:bg-blue-50"
-                onClick={openDirectionSelector}
-              >
-                → {currentDirection}
-              </Badge>
-            )}
           </div>
           <span className="text-xs text-gray-500">Click to change</span>
         </div>
