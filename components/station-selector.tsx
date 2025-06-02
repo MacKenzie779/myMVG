@@ -130,51 +130,7 @@ export function StationSelector({ currentStation, currentDirection, onStationCha
 
 
           <div className="space-y-4">
-            {/* Current Station Display */}
-            {selectedStation && (
-              <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-2 w-[90%]">
-                    <button
-                        onClick={() => handleDirectionChange(undefined)}
-                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                            !currentDirection ? "border-blue-500 bg-blue-50 text-blue-900" : "border-gray-200 hover:border-gray-300"
-                        }`}
-                    >
-                        <div className="font-medium">All directions</div>
-                        <div className="text-xs text-gray-600">Show departures in both directions</div>
-                    </button>
-
-                    {directions.map((direction) => (
-                        <button
-                            key={direction}
-                            onClick={() => handleDirectionChange(direction)}
-                            className={`w-full text-left p-3 rounded-lg border transition-colors flex items-center gap-2 ${
-                            currentDirection === direction
-                            ? "border-blue-500 bg-blue-50 text-blue-900"
-                            : "border-gray-200 hover:border-gray-300"
-                            }`}
-                        >
-                            <Navigation className="w-4 h-4" />
-                            <div>
-                                <div className="font-medium">→ {direction}</div>
-                                <div className="text-xs text-gray-600">Departures towards {direction}</div>
-                            </div>
-                        </button>
-                    ))}
-                    </div>
-                        <button
-                            onClick={handleClearStation}
-                            className="text-blue-600 hover:text-blue-800 p-1"
-                            title="Clear selection"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Search Input */}
+                        {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 {isSearching ? (
@@ -244,6 +200,51 @@ export function StationSelector({ currentStation, currentDirection, onStationCha
                 </p>
               </div>
             )}
+            {/* Current Station Display */}
+            {selectedStation && (
+              <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-2 w-[90%]">
+                    <button
+                        onClick={() => handleDirectionChange(undefined)}
+                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                            !currentDirection ? "border-blue-500 bg-blue-50 text-blue-900" : "border-gray-200 hover:border-gray-300"
+                        }`}
+                    >
+                        <div className="font-medium">All directions</div>
+                        <div className="text-xs text-gray-600">Show departures in both directions</div>
+                    </button>
+
+                    {directions.map((direction) => (
+                        <button
+                            key={direction}
+                            onClick={() => handleDirectionChange(direction)}
+                            className={`w-full text-left p-3 rounded-lg border transition-colors flex items-center gap-2 ${
+                            currentDirection === direction
+                            ? "border-blue-500 bg-blue-50 text-blue-900"
+                            : "border-gray-200 hover:border-gray-300"
+                            }`}
+                        >
+                            <Navigation className="w-4 h-4" />
+                            <div>
+                                <div className="font-medium">→ {direction}</div>
+                                <div className="text-xs text-gray-600">Departures towards {direction}</div>
+                            </div>
+                        </button>
+                    ))}
+                    </div>
+                        <button
+                            onClick={handleClearStation}
+                            className="text-blue-600 hover:text-blue-800 p-1"
+                            title="Clear selection"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+
           </div>
         </CardContent>
       </Card>
