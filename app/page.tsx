@@ -260,10 +260,11 @@ export default function UBahnDepartures() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
             <Train className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
             {currentStationData?.name}
-            {direction != null && (
-                <> – Richtung {direction}</>
-            )}
           </h1>
+          {direction != null && (
+            <h2 className="text-1xl md:text-1xl font-bold text-gray-700 mb-2 flex items-center gap-2">Richtung {direction}</h2>
+          )}
+
           {lastUpdated && (
             <p className="text-xs md:text-sm text-gray-600 flex items-center gap-1">
               <Clock className="w-3 h-3 md:w-4 md:h-4" />
